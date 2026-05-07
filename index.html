@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>위진수 — C++ Windows 보안 개발자 포트폴리오</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    line-height: 1.7;
+  }
+  .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+  .hero { padding: 100px 0 60px; background: linear-gradient(135deg, #0a0a1a, #1a1a2e); text-align: center; }
+  .hero h1 { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero .role { color: #888; font-size: 1.1rem; margin-top: 12px; }
+  .hero .contact { color: #666; font-size: 0.9rem; margin-top: 8px; }
+  .hero .tag { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; margin: 4px; border: 1px solid rgba(0,212,255,0.2); color: #00d4ff; }
+  .hero .tag:nth-child(2) { border-color: rgba(123,47,247,0.2); color: #b388ff; }
+  .hero .tag:nth-child(3) { border-color: rgba(0,230,118,0.2); color: #69f0ae; }
+
+  .section { padding: 60px 0; border-bottom: 1px solid #111122; }
+  .section:last-child { border-bottom: none; }
+  .section h2 {
+    font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 24px;
+    padding-left: 16px; border-left: 3px solid #7b2ff7;
+  }
+
+  .project {
+    background: #111122;
+    border: 1px solid #1a1a3e;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .project h3 { color: #00d4ff; font-size: 1.05rem; }
+  .project .meta { color: #666; font-size: 0.85rem; margin: 6px 0 12px; }
+  .project p { color: #aaa; font-size: 0.9rem; margin-bottom: 8px; }
+  .project ul { list-style: none; }
+  .project ul li { padding: 4px 0; font-size: 0.85rem; color: #999; }
+  .project ul li::before { content: "▸ "; color: #7b2ff7; }
+  .project .tech { margin-top: 12px; }
+  .project .tech span {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin: 2px;
+    background: rgba(255,255,255,0.05); border: 1px solid #333; color: #bbb;
+  }
+
+  .skill-group { margin-bottom: 16px; }
+  .skill-group h3 { font-size: 0.9rem; color: #00d4ff; margin-bottom: 8px; }
+  .skill-group .items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-group .items span {
+    padding: 4px 12px; border-radius: 6px; font-size: 0.82rem;
+    background: #111122; border: 1px solid #1a1a3e; color: #bbb;
+  }
+
+  .footer { text-align: center; padding: 40px 0; color: #555; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="container">
+    <span class="tag">C++17</span>
+    <span class="tag">OpenSSL</span>
+    <span class="tag">Win32 API</span>
+    <h1>위진수</h1>
+    <p class="role">C++ Windows 보안 라이브러리 개발자 | 8년차</p>
+    <p class="contact">wlstn1384@naver.com</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>소개</h2>
+    <p style="color:#aaa; font-size:0.9rem;">
+      OpenSSL · PKI · HSM 영역에서 8년간 개발한 보안 라이브러리 전문가입니다.
+      국내 공동인증서(PKCS#7/CMS, X.509)부터 중국 SM 표준까지 다루었고,
+      IDA Pro + WinDbg로 비공개 프로토콜을 역산·재구현한 리버스 엔지니어링 경험을 보유하고 있습니다.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>포트폴리오 프로젝트</h2>
+
+    <div class="project">
+      <h3>🔐 FileGuard DLL</h3>
+      <p class="meta">OpenSSL 기반 Windows 파일 보호 라이브러리 | C++17 | 2026.05</p>
+      <p>AES-256-GCM 암호화와 ReadDirectoryChangesW 기반 랜섬웨어 탐지를 수행하는 Windows DLL 라이브러리</p>
+      <ul>
+        <li>OpenSSL EVP 인터페이스로 AES-256-GCM 암호화/복호화 (AEAD 모드)</li>
+        <li>ReadDirectoryChangesW 비동기 I/O 기반 실시간 파일 감시</li>
+        <li>Rate / Extension / Action 3축 랜섬웨어 패턴 탐지</li>
+        <li>C++17, CMake 빌드 시스템</li>
+        <li>사용자 영역(User-Mode) 전용 — 별도 드라이버 불필요</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#666;">
+        <a href="https://github.com/Caixa-git/fileguard-dll" style="color:#00d4ff;">→ GitHub Repository (Private)</a>
+      </p>
+    </div>
+
+    <div class="project">
+      <h3>🛡 HSM 로그인 자동화 모듈 (쿠콘, 2019~2025)</h3>
+      <p class="meta">국내외 16개 금융기관 대상 | 단독 개발</p>
+      <p>HSM 환경에서 개인키 반출 없이 서명 가능한 PKCS#11 Wrapper 및 서명 재조립 모듈</p>
+      <ul>
+        <li>IDA Pro + WinDbg로 기존 서명 프로그램 역분석 → ASN.1 스펙·해시 알고리즘 역산</li>
+        <li>PKCS#11 표준 API 기반 Wrapper 구현 (세션·키 핸들·서명 위임 단일 인터페이스)</li>
+        <li>병렬 서명 도입으로 로그인 시간 4~5분 → 1분 이내 단축</li>
+        <li>담당 기간 HSM 대응 필요 금융기관 100% 단독 커버</li>
+      </ul>
+      <div class="tech">
+        <span>C++</span><span>Delphi</span><span>OpenSSL</span><span>PKCS#11</span><span>ASN.1</span>
+        <span>IDA Pro</span><span>WinDbg</span><span>API Monitor</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <h3>🇨🇳 중국 상용암호(SM2/SM3/SM4) 및 CFCA 대응 모듈 (쿠콘, 2022)</h3>
+      <p class="meta">중국 금융기관 연동 | 단독 개발</p>
+      <ul>
+        <li>SM2/SM3/SM4를 OpenSSL 연동 기반으로 통합</li>
+        <li>CFCA 인증서 파싱·검증 로직 및 서명 포맷 대응</li>
+        <li>국내 표준(NPKI) 모듈과 단일 인터페이스 유지</li>
+        <li>국내 대기업 중국 법인 CFCA 인증서 갱신 이슈 긴급 대응 → 서비스 무중단 전환</li>
+      </ul>
+      <div class="tech">
+        <span>C++</span><span>OpenSSL</span><span>SM2</span><span>SM3</span><span>SM4</span><span>X.509</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <h3>📡 NXiSAS Windows 스크래핑 솔루션 장기 운영 (쿠콘, 2017~2025)</h3>
+      <p class="meta">금융기관·공공 대상 | 장기 운용</p>
+      <ul>
+        <li>Delphi/C++ 기반 고객 설치형 Windows 스크래핑 솔루션 유지보수</li>
+        <li>스크래핑 부서가 실패한 기관/사이트 대신 스크래핑 모듈 개발 지원</li>
+        <li>iSAS → NXiSAS 전환 과정 장애 병행 대응</li>
+      </ul>
+      <div class="tech">
+        <span>Delphi</span><span>C++</span><span>Windows</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>기술 스택</h2>
+    <div class="skill-group">
+      <h3>Languages</h3>
+      <div class="items">
+        <span>C/C++ (14년)</span>
+        <span>Delphi (8년)</span>
+        <span>Python (4년)</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Cryptography</h3>
+      <div class="items">
+        <span>OpenSSL</span>
+        <span>PKCS#11</span>
+        <span>PKCS#7/CMS</span>
+        <span>ASN.1</span>
+        <span>X.509</span>
+        <span>SM2/SM3/SM4</span>
+        <span>HMAC</span>
+        <span>AES-GCM</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Windows</h3>
+      <div class="items">
+        <span>Win32 API</span>
+        <span>DLL</span>
+        <span>ReadDirectoryChangesW</span>
+        <span>WinDivert</span>
+        <span>Crypt32 API</span>
+      </div>
+    </div>
+    <div class="skill-group">
+      <h3>Reverse Engineering</h3>
+      <div class="items">
+        <span>IDA Pro</span>
+        <span>WinDbg</span>
+        <span>API Monitor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>경력</h2>
+    <div class="project" style="padding:20px;">
+      <h3>㈜쿠콘 (2017.02 ~ 2025.11)</h3>
+      <p class="meta">핵심기술연구부 | 과장 / 팀장</p>
+      <p>OpenSSL · PKI · HSM 기반 암호화·보안 라이브러리 자체 개발 및 유지보수</p>
+      <p style="margin-top:8px; font-size:0.85rem; color:#666;">
+        주니어 온보딩 3년 · 장애 컨트롤 타워 3년
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="footer">
+  <div class="container">
+    © 2026 위진수 — AI 도움을 받아 직접 개발한 포트폴리오입니다.
+  </div>
+</section>
+
+</body>
+</html>
