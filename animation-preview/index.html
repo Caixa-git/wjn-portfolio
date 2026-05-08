@@ -370,16 +370,21 @@ const ARGO = { total: 37, valid: 37, score: 100 };
 const DISNEY = { total: 1074, valid: 1074, score: 100 };
 
 // ===== Sprite animation config =====
-const FRAME_COUNTS = {
-  1:30,2:30,3:29,4:29,5:29,6:29,7:29,8:29,9:29,10:29,
-  11:29,12:29,13:29,14:29,15:29,16:29,17:30,18:29,19:29,20:28,
-  21:29,22:29,23:29,24:29,25:29,26:29,27:30,28:29,29:29,30:29,
-  31:29,32:29,33:29,34:29,35:29,36:29,37:29
-};
 const SPRITE_W = 51;
 const SPRITE_H = 38;
 const SHEET_PATH = './sheets/';
 const ANIM_INTERVAL = 100; // ms (matches 10 FPS in C++)
+
+// Per-row metadata: frame count (all normalized to 38px height, 51px width)
+const ROW_DATA = {
+  1:{f:30}, 2:{f:30}, 3:{f:29}, 4:{f:29}, 5:{f:29}, 6:{f:29},
+  7:{f:29}, 8:{f:29}, 9:{f:29},10:{f:29},11:{f:29},12:{f:29},
+  13:{f:29},14:{f:29},15:{f:29},16:{f:29},17:{f:30},18:{f:29},
+  19:{f:29},20:{f:28},21:{f:29},22:{f:29},23:{f:29},24:{f:29},
+  25:{f:29},26:{f:29},27:{f:30},28:{f:29},29:{f:29},30:{f:29},
+  31:{f:29},32:{f:29},33:{f:29},34:{f:29},35:{f:29},36:{f:29},
+  37:{f:29}
+};
 
 let selectedRow = 1;
 let animFrames = {};
@@ -427,27 +432,35 @@ function buildGrid() {
   }
 }
 
-function setSpriteBg(el, row, w, h) {
+function setSpriteBg(el, row, displayW, displayH) {
   const padded = String(row).padStart(2, '0');
+  const rd = ROW_DATA[row];
+  if (!rd) return;
+  const stripW = rd.f * displayW; // exact strip width at display scale
   el.style.backgroundImage = `url(${SHEET_PATH}row_${padded}.png)`;
-  el.style.backgroundSize = `auto ${h}px`;
-  el.style.width = w + 'px';
-  el.style.height = h + 'px';
+  el.style.backgroundSize = `${stripW}px ${displayH}px`;
+  el.style.width = displayW + 'px';
+  el.style.height = displayH + 'px';
+  el.style.backgroundPosition = '0 0';
 }
 
 // Animation system
-let animOffsets = {};
 let animTimers = {};
 
 function startAnimation(row) {
   stopAnimation(row);
-  const frames = FRAME_COUNTS[row] || 29;
+  const rd = ROW_DATA[row];
+  if (!rd) return;
+  const frames = rd.f;
   let frame = 0;
-  animOffsets[row] = 0;
+
+  // Grid scale = SPRITE_W (1x), Preview scale = SPRITE_W * 2 (2x)
+  const gridStep = SPRITE_W;
+  const previewStep = SPRITE_W * 2;
 
   animTimers[row] = setInterval(() => {
     frame = (frame + 1) % frames;
-    const offset = -(frame * SPRITE_W);
+    const offset = -(frame * gridStep);
 
     // Update grid sprite
     const spriteEl = document.getElementById(`sprite_${row}`);
@@ -456,7 +469,7 @@ function startAnimation(row) {
     // Update preview if this is selected row
     if (row === selectedRow) {
       const previewEl = document.getElementById('previewSprite');
-      if (previewEl) previewEl.style.backgroundPosition = `${offset * 2}px 0`;
+      if (previewEl) previewEl.style.backgroundPosition = `${frame * -previewStep}px 0`;
 
       const rockyEl = document.getElementById('rockySprite');
       if (rockyEl) rockyEl.style.backgroundPosition = `${offset}px 0`;
@@ -490,7 +503,7 @@ function selectRow(row) {
   const preview = document.getElementById('preview');
   preview.classList.add('visible');
   document.getElementById('previewTitle').textContent = `Row ${String(row).padStart(2,'0')}`;
-  document.getElementById('previewDesc').textContent = `애니메이션 ${FRAME_COUNTS[row]}프레임 · Office Rocky 스타일`;
+  document.getElementById('previewDesc').textContent = `애니메이션 ${ROW_DATA[row]?.f || 0}프레임 · Office Rocky 스타일`;
 
   const previewSprite = document.getElementById('previewSprite');
   setSpriteBg(previewSprite, row, SPRITE_W * 2, SPRITE_H * 2);
