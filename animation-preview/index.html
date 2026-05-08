@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileGuard AI — Office Rocky Animation Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    padding: 48px 24px 24px;
+    text-align: center;
+    background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+    border-bottom: 1px solid #1a1a3e;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    color: #888;
+    font-size: 0.9rem;
+  }
+  .header .tags {
+    margin-top: 12px;
+  }
+  .header .tags span {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    margin: 3px;
+    border: 1px solid rgba(123,47,247,0.25);
+    color: #b388ff;
+  }
+
+  /* Pipeline tools bar */
+  .pipeline {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px;
+    background: #0d0d1a;
+    border-bottom: 1px solid #1a1a3e;
+    font-size: 0.8rem;
+  }
+  .pipeline .tool {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #1a1a3e;
+    color: #666;
+    transition: color 0.2s;
+  }
+  .pipeline .tool.active {
+    color: #00d4ff;
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    background: #0d0d1a;
+    border-bottom: 1px solid #1a1a3e;
+    flex-wrap: wrap;
+  }
+  .controls input {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #1a1a3e;
+    background: #111122;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    outline: none;
+    width: 160px;
+  }
+  .controls input:focus {
+    border-color: #7b2ff7;
+  }
+  .controls button {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid #7b2ff7;
+    background: rgba(123,47,247,0.15);
+    color: #b388ff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  .controls button:hover {
+    background: rgba(123,47,247,0.3);
+  }
+  .controls .info {
+    color: #666;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Character grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .cell {
+    background: #111122;
+    border: 1px solid #1a1a3e;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .cell:hover {
+    border-color: #7b2ff7;
+    transform: translateY(-2px);
+  }
+  .cell.active {
+    border-color: #00d4ff;
+    box-shadow: 0 0 12px rgba(0,212,255,0.15);
+  }
+  .cell .sprite {
+    width: 102px;
+    height: 76px;
+    margin: 0 auto;
+    image-rendering: pixelated;
+    background-size: auto 76px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+  }
+  .cell .label {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #888;
+  }
+  .cell .id {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 2px;
+  }
+  .cell .check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0,212,255,0.2);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: #00d4ff;
+    font-size: 10px;
+    line-height: 18px;
+    text-align: center;
+    display: none;
+  }
+  .cell.active .check {
+    display: block;
+  }
+
+  /* Selected row preview */
+  .preview {
+    display: none;
+    padding: 24px;
+    background: #111122;
+    border: 1px solid #1a1a3e;
+    border-radius: 12px;
+    max-width: 500px;
+    margin: 16px auto;
+    text-align: center;
+  }
+  .preview.visible {
+    display: block;
+  }
+  .preview .sprite-big {
+    width: 204px;
+    height: 152px;
+    margin: 0 auto;
+    image-rendering: pixelated;
+    background-size: auto 152px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    border: 2px solid #1a1a3e;
+    border-radius: 8px;
+  }
+  .preview h3 {
+    color: #00d4ff;
+    margin: 12px 0 4px;
+    font-size: 1rem;
+  }
+  .preview p {
+    color: #888;
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+  }
+
+  /* Office Rocky UI mockup */
+  .rocky-ui {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    background: #0a0a1a;
+    border: 1px solid #1a1a3e;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+  .rocky-ui.visible {
+    display: block;
+  }
+  .rocky-ui .sprite-demo {
+    width: 102px;
+    height: 76px;
+    margin: 0 auto;
+    image-rendering: pixelated;
+    background-size: auto 76px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+  }
+  .rocky-ui .speech-bubble {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4e;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 0.75rem;
+    color: #ccc;
+    position: relative;
+  }
+  .rocky-ui .speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #1a1a2e;
+  }
+  .rocky-ui .actions {
+    display: flex;
+    gap: 8px;
+  }
+  .rocky-ui .actions button {
+    flex: 1;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .rocky-ui .btn-cancel {
+    background: rgba(255,70,70,0.2);
+    color: #ff6b6b;
+    border: 1px solid rgba(255,70,70,0.3) !important;
+  }
+  .rocky-ui .btn-approve {
+    background: rgba(0,212,255,0.15);
+    color: #00d4ff;
+    border: 1px solid rgba(0,212,255,0.3) !important;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: #444;
+    font-size: 0.75rem;
+    border-top: 1px solid #111122;
+  }
+
+  @media (max-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+      padding: 12px;
+    }
+    .cell .sprite {
+      width: 68px;
+      height: 50px;
+      background-size: auto 50px !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🐕 FileGuard AI — Office Rocky</h1>
+  <p class="subtitle">37가지 캐릭터 애니메이션 프리뷰</p>
+  <div class="tags">
+    <span>🏛 Oculus — Screen Capture</span>
+    <span>🎨 Picasso — Content Creation</span>
+    <span>📊 Argo — Performance Score</span>
+    <span>✨ Disney — Visual QA</span>
+  </div>
+</div>
+
+<div class="pipeline">
+  <span class="tool active">🏛 Oculus: 캡처 완료</span>
+  <span class="tool active">🎨 Picasso: 스프라이트 제작</span>
+  <span class="tool active">📊 Argo: 37/37 (100%)</span>
+  <span class="tool active">✨ Disney: 1,074/1,074 (100%)</span>
+</div>
+
+<div class="controls">
+  <div class="info">
+    <span>🎞</span>
+    <span id="selectedLabel">Row 01 선택됨</span>
+  </div>
+  <input type="range" id="rowSlider" min="1" max="37" value="1">
+  <button onclick="selectRow(parseInt(document.getElementById('rowSlider').value))">선택</button>
+  <button onclick="document.querySelector('.rocky-ui').classList.toggle('visible')">🖥 Office Rocky UI</button>
+</div>
+
+<!-- Preview section -->
+<div class="preview" id="preview">
+  <div class="sprite-big" id="previewSprite"></div>
+  <h3 id="previewTitle">Row 01</h3>
+  <p id="previewDesc">클릭하여 다른 애니메이션을 선택해보세요.</p>
+</div>
+
+<!-- Animation grid -->
+<div class="grid" id="grid"></div>
+
+<!-- Office Rocky UI mockup -->
+<div class="rocky-ui" id="rockyUI">
+  <div class="sprite-demo" id="rockySprite"></div>
+  <div class="speech-bubble">
+    🔴 위험! 파일 30개가 급격히 변경 중입니다!<br>
+    랜섬웨어 패턴 85% 일치!
+  </div>
+  <div class="actions">
+    <button class="btn-cancel" onclick="alert('❌ 취소됨: 의심 작업을 차단했습니다.')">❌ 취소</button>
+    <button class="btn-approve" onclick="alert('✅ 승인됨: 작업을 허용했습니다.')">✅ 승인</button>
+  </div>
+</div>
+
+<div class="footer">
+  FileGuard AI · Office Rocky — Animation Preview · © 2026
+</div>
+
+<script>
+// ===== Pipeline tools metadata =====
+const ARGO = { total: 37, valid: 37, score: 100 };
+const DISNEY = { total: 1074, valid: 1074, score: 100 };
+
+// ===== Sprite animation config =====
+const FRAME_COUNTS = {
+  1:30,2:30,3:29,4:29,5:29,6:29,7:29,8:29,9:29,10:29,
+  11:29,12:29,13:29,14:29,15:29,16:29,17:30,18:29,19:29,20:28,
+  21:29,22:29,23:29,24:29,25:29,26:29,27:30,28:29,29:29,30:29,
+  31:29,32:29,33:29,34:29,35:29,36:29,37:29
+};
+const SPRITE_W = 51;
+const SPRITE_H = 38;
+const SHEET_PATH = './sheets/';
+const ANIM_INTERVAL = 100; // ms (matches 10 FPS in C++)
+
+let selectedRow = 1;
+let animFrames = {};
+
+// Preload images
+function preloadImages() {
+  for (let row = 1; row <= 37; row++) {
+    const img = new Image();
+    img.src = SHEET_PATH + `row_${String(row).padStart(2,'0')}.png`;
+    animFrames[row] = img;
+  }
+}
+
+// Build grid
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  for (let row = 1; row <= 37; row++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.row = row;
+    cell.onclick = () => selectRow(row);
+
+    const sprite = document.createElement('div');
+    sprite.className = 'sprite';
+    sprite.id = `sprite_${row}`;
+    setSpriteBg(sprite, row, SPRITE_W, SPRITE_H);
+
+    const check = document.createElement('div');
+    check.className = 'check';
+    check.textContent = '✓';
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = `Row ${String(row).padStart(2,'0')}`;
+
+    const id = document.createElement('div');
+    id.className = 'id';
+    id.textContent = `${FRAME_COUNTS[row]} frames`;
+
+    cell.appendChild(check);
+    cell.appendChild(sprite);
+    cell.appendChild(label);
+    cell.appendChild(id);
+    grid.appendChild(cell);
+  }
+}
+
+function setSpriteBg(el, row, w, h) {
+  const padded = String(row).padStart(2, '0');
+  el.style.backgroundImage = `url(${SHEET_PATH}row_${padded}.png)`;
+  el.style.backgroundSize = `auto ${h}px`;
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+}
+
+// Animation system
+let animOffsets = {};
+let animTimers = {};
+
+function startAnimation(row) {
+  stopAnimation(row);
+  const frames = FRAME_COUNTS[row] || 29;
+  let frame = 0;
+  animOffsets[row] = 0;
+
+  animTimers[row] = setInterval(() => {
+    frame = (frame + 1) % frames;
+    const offset = -(frame * SPRITE_W);
+
+    // Update grid sprite
+    const spriteEl = document.getElementById(`sprite_${row}`);
+    if (spriteEl) spriteEl.style.backgroundPosition = `${offset}px 0`;
+
+    // Update preview if this is selected row
+    if (row === selectedRow) {
+      const previewEl = document.getElementById('previewSprite');
+      if (previewEl) previewEl.style.backgroundPosition = `${offset * 2}px 0`;
+
+      const rockyEl = document.getElementById('rockySprite');
+      if (rockyEl) rockyEl.style.backgroundPosition = `${offset}px 0`;
+    }
+  }, ANIM_INTERVAL);
+}
+
+function stopAnimation(row) {
+  if (animTimers[row]) {
+    clearInterval(animTimers[row]);
+    delete animTimers[row];
+  }
+}
+
+function startAllAnimations() {
+  for (let row = 1; row <= 37; row++) {
+    startAnimation(row);
+  }
+}
+
+// Row selection
+function selectRow(row) {
+  selectedRow = row;
+
+  // Update grid highlighting
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+  const cell = document.querySelector(`.cell[data-row="${row}"]`);
+  if (cell) cell.classList.add('active');
+
+  // Update preview
+  const preview = document.getElementById('preview');
+  preview.classList.add('visible');
+  document.getElementById('previewTitle').textContent = `Row ${String(row).padStart(2,'0')}`;
+  document.getElementById('previewDesc').textContent = `애니메이션 ${FRAME_COUNTS[row]}프레임 · Office Rocky 스타일`;
+
+  const previewSprite = document.getElementById('previewSprite');
+  setSpriteBg(previewSprite, row, SPRITE_W * 2, SPRITE_H * 2);
+
+  // Update Rocky UI sprite
+  const rockySprite = document.getElementById('rockySprite');
+  setSpriteBg(rockySprite, row, SPRITE_W, SPRITE_H);
+
+  // Update slider
+  document.getElementById('rowSlider').value = row;
+  document.getElementById('selectedLabel').textContent = `Row ${String(row).padStart(2,'0')} 선택됨`;
+
+  // Scroll to cell
+  if (cell) cell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Init
+preloadImages();
+buildGrid();
+startAllAnimations();
+selectRow(1);
+
+// Restart animations when page becomes visible again
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    // Clear all and restart
+    for (let row = 1; row <= 37; row++) stopAnimation(row);
+    startAllAnimations();
+  }
+});
+</script>
+</body>
+</html>
