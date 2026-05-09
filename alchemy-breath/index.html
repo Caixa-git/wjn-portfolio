@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALCHEMY — {◆} Breathing Spinner Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Header */
+  .header {
+    padding: 48px 24px 24px;
+    text-align: center;
+    width: 100%;
+    background: linear-gradient(135deg, #0a0a1a, #1a1a2e);
+    border-bottom: 1px solid #1a1a3e;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFCC3D, #FF9500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+  }
+  .header .subtitle {
+    color: #888;
+    font-size: 0.9rem;
+  }
+  .header .badge {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 16px;
+    border-radius: 20px;
+    background: rgba(255,204,61,0.1);
+    border: 1px solid rgba(255,204,61,0.2);
+    color: #FFCC3D;
+    font-size: 0.8rem;
+  }
+
+  /* Terminal window */
+  .terminal-wrap {
+    width: 100%;
+    max-width: 680px;
+    margin: 40px 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1a1a3e;
+    background: #0d0d16;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    background: #111122;
+    border-bottom: 1px solid #1a1a3e;
+    gap: 8px;
+  }
+  .terminal-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+  .terminal-dot.red { background: #ff5f56; }
+  .terminal-dot.yellow { background: #ffbd2e; }
+  .terminal-dot.green { background: #27c93f; }
+  .terminal-title {
+    color: #555;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 8px;
+    flex: 1;
+  }
+  .terminal-body {
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    min-height: 240px;
+    background: #0a0a14;
+  }
+
+  /* Breathing demo area */
+  .breath-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .breath-spinner {
+    font-size: 32px;
+    min-width: 60px;
+    text-align: center;
+  }
+  .breath-status {
+    color: #666;
+    font-size: 0.8rem;
+  }
+  .prompt-line {
+    color: #FFCC3D;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  .thinking-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .cursor-blink {
+    width: 8px; height: 16px;
+    background: #FFCC3D;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .response-line {
+    color: #ccc;
+    font-size: 1rem;
+    margin: 8px 0;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* Explanation section */
+  .explain {
+    max-width: 680px;
+    padding: 0 20px 60px;
+    width: 100%;
+  }
+  .explain h2 {
+    color: #FFCC3D;
+    font-size: 1.2rem;
+    margin: 32px 0 12px;
+    font-weight: 500;
+  }
+  .explain h3 {
+    color: #aaa;
+    font-size: 0.95rem;
+    margin: 24px 0 8px;
+    font-weight: 500;
+  }
+  .explain p {
+    color: #777;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+  .explain code {
+    background: #111122;
+    border: 1px solid #1a1a3e;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #FFCC3D;
+  }
+  .explain pre {
+    background: #0d0d16;
+    border: 1px solid #1a1a3e;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #b0b0b0;
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  .explain pre .kw { color: #FFCC3D; }
+  .explain pre .fn { color: #64ffda; }
+  .explain pre .cm { color: #555; }
+  .explain pre .str { color: #ff9e64; }
+  .explain pre .num { color: #b388ff; }
+
+  .divider {
+    height: 1px;
+    background: #1a1a3e;
+    margin: 24px 0;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: #444;
+    font-size: 0.75rem;
+    border-top: 1px solid #111122;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>◆ ALCHEMY</h1>
+  <p class="subtitle">C99 AI Agent Framework — {◆} Breathing Spinner</p>
+  <span class="badge">ANSI TrueColor · Sine Wave · Single-Threaded</span>
+</div>
+
+<!-- Terminal Demo -->
+<div class="terminal-wrap">
+  <div class="terminal-bar">
+    <span class="terminal-dot red"></span>
+    <span class="terminal-dot yellow"></span>
+    <span class="terminal-dot green"></span>
+    <span class="terminal-title">alchemy — {◆} breathing demo</span>
+  </div>
+  <div class="terminal-body" id="terminal">
+    <div class="prompt-line">◆ 안녕, 새로운 아이디어 있어?</div>
+
+    <div class="thinking-line">
+      <span id="breathDisplay" style="color:#FFCC3D"></span>
+      <span class="breath-status" id="breathStatus">생각하고 있어요...</span>
+    </div>
+
+    <div class="response-line" id="responseLine">
+      <span class="prompt-line">◆ </span>좋은 질문이에요. 한번 생각해볼게요...
+    </div>
+  </div>
+</div>
+
+<!-- Explanation -->
+<div class="explain">
+  <h2>🎯 개념</h2>
+  <p>
+    <code>{◆}</code> 는 ALCHEMY의 핵심 로고입니다. LLM이 응답을 준비하는 동안,
+    이 심볼이 <strong>부드럽게 호흡</strong>합니다. 대답이 도착하면 풀 밝기로 고정됩니다.
+  </p>
+
+  <div class="divider"></div>
+
+  <h2>📐 원리</h2>
+  <h3>사인파 호흡 곡선</h3>
+  <p>
+    밝기는 사인파(sine wave)를 따라 30% ~ 100% 사이를 부드럽게 오르내립니다.
+    1왕복 600ms (25fps)로, 자연스러운 호흡 리듬을 모방합니다.
+  </p>
+  <pre><span class="kw">double</span> <span class="fn">calc_brightness</span>(<span class="kw">int</span> step) {
+    <span class="kw">double</span> t = (<span class="kw">double</span>)(step % CYCLE_STEPS) / CYCLE_STEPS * <span class="num">2.0</span> * M_PI;
+    <span class="kw">double</span> s = <span class="fn">sin</span>(t);
+    <span class="cm">// 0.30 ~ 1.00 사이를 부드럽게 오르내림</span>
+    <span class="kw">return</span> <span class="num">0.30</span> + (<span class="num">1.00</span> - <span class="num">0.30</span>) * (s + <span class="num">1.0</span>) / <span class="num">2.0</span>;
+  }</pre>
+
+  <h3>ANSI TrueColor</h3>
+  <p>
+    <code>#FFCC3D</code> (R=255, G=204, B=61) 의 RGB 값을 밝기 계수로 스케일링합니다.
+    <code>\033[38;2;R;G;Bm</code> ANSI TrueColor 이스케이프 시퀀스로 출력됩니다.
+    대부분의 현대 터미널(iTerm2, Windows Terminal, kitty, alacritty)에서 지원합니다.
+  </p>
+  <pre>  <span class="fn">printf</span>(<span class="str">"\r\033[38;2;%d;%d;%dm{◆}\033[0m   "</span>, r, g, b);
+  <span class="fn">fflush</span>(stdout);</pre>
+
+  <h3>단일 쓰레드 select() 루프</h3>
+  <p>
+    별도의 쓰레드 없이, <code>select()</code> 시스템 콜로 40ms 타임아웃을 설정합니다.
+    타임아웃마다 호흡을 갱신하고, 데이터가 도착하면 풀밝기로 고정 후 청크를 처리합니다.
+  </p>
+  <pre>  <span class="cm">// 40ms select 타임아웃 → 호흡 갱신</span>
+  <span class="kw">struct</span> timeval tv = {<span class="num">0</span>, <span class="num">40000</span>};
+  <span class="kw">int</span> sret = <span class="fn">select</span>(fd + <span class="num">1</span>, &rfds, NULL, NULL, &tv);
+  <span class="kw">if</span> (sret == <span class="num">0</span>) { <span class="cm">/* timeout → breathe */</span>
+      <span class="fn">breath_tick</span>();
+      <span class="kw">continue</span>;
+  }
+  <span class="cm">// Data ready → lock, then BIO_read</span>
+  <span class="fn">breath_lock</span>();</pre>
+
+  <div class="divider"></div>
+
+  <h2>🧠 설계 결정</h2>
+  <p>
+    <strong>문자 교체 ❌ → 색상 호흡 ✅</strong><br>
+    ◇ → ◈ → ◆ 같은 유니코드 문자 교체는 깜빡임(blink) 느낌이 있습니다.
+    같은 <code>{◆}</code> 를 유지하면서 밝기만 변화시키는 방식이 더 자연스럽습니다.
+    <code>{</code> 와 <code>}</code> 는 고정점(invariant)으로, 변화하지 않습니다.
+  </p>
+  <p>
+    <strong>멀티쓰레드 ❌ → select() ✅</strong><br>
+    현재는 단일 쓰레드지만, <code>select()</code> 기반이므로 향후 멀티쓰레드 전환 시에도
+    <code>usleep()</code> 타이머로 자연스럽게 업그레이드됩니다.
+  </p>
+
+  <div class="divider"></div>
+
+  <h2>🔗 관련 링크</h2>
+  <p>
+    <a href="https://github.com/Caixa-git/alchemy" style="color:#64ffda;text-decoration:none;">
+      GitHub: Caixa-git/alchemy
+    </a>
+    &nbsp;·&nbsp;
+    <a href="https://caixa-git.github.io/work-please/" style="color:#64ffda;text-decoration:none;">
+      work-please
+    </a>
+  </p>
+</div>
+
+<div class="footer">
+  ALCHEMY · {◆} Breathing Spinner · © 2026 WIJINSU
+</div>
+
+<script>
+(function() {
+  // ── Breathing animation ──
+  const BASE_R = 255, BASE_G = 204, BASE_B = 61;
+  const BRIGHT_MIN = 0.30, BRIGHT_MAX = 1.00;
+  const CYCLE_MS = 600;
+  const FPS = 25;
+  const STEP_MS = 1000 / FPS;  // ~40ms
+  const CYCLE_STEPS = (FPS * CYCLE_MS) / 1000;  // 15
+
+  const el = document.getElementById('breathDisplay');
+  const statusEl = document.getElementById('breathStatus');
+  const responseEl = document.getElementById('responseLine');
+
+  let step = 0;
+  let breathing = true;
+  let secondPassed = false;
+
+  // Phase 1: breathing for ~2 seconds
+  function initDemo() {
+    el.style.color = `rgb(${Math.round(BASE_R * 0.3)},${Math.round(BASE_G * 0.3)},${Math.round(BASE_B * 0.3)})`;
+    el.textContent = '{◆}';
+    statusEl.textContent = '연결 중...';
+    responseEl.style.opacity = '0';
+
+    // After 500ms: start breathing
+    setTimeout(() => {
+      statusEl.textContent = '생각하고 있어요...';
+      startBreathing();
+
+      // After 2.5s: lock + show response
+      setTimeout(() => {
+        breathing = false;
+        el.style.color = `rgb(${BASE_R},${BASE_G},${BASE_B})`;
+        el.style.textShadow = '0 0 20px rgba(255,204,61,0.5)';
+        statusEl.textContent = '✓ 준비 완료!';
+        responseEl.style.animation = 'none';
+        responseEl.style.opacity = '1';
+
+        // Loop after pause
+        setTimeout(() => {
+          resetDemo();
+        }, 2500);
+      }, 2500);
+    }, 500);
+  }
+
+  function startBreathing() {
+    if (!breathing) return;
+    step++;
+    const t = (step % CYCLE_STEPS) / CYCLE_STEPS * 2 * Math.PI;
+    const s = Math.sin(t);
+    const bright = BRIGHT_MIN + (BRIGHT_MAX - BRIGHT_MIN) * (s + 1) / 2;
+    const r = Math.round(BASE_R * bright);
+    const g = Math.round(BASE_G * bright);
+    const b = Math.round(BASE_B * bright);
+    el.style.color = `rgb(${r},${g},${b})`;
+    el.style.textShadow = `0 0 20px rgba(255,204,61,${0.4 * bright})`;
+    setTimeout(startBreathing, STEP_MS);
+  }
+
+  function resetDemo() {
+    responseEl.style.opacity = '0';
+    breathing = true;
+    step = 0;
+    el.style.textShadow = 'none';
+    initDemo();
+  }
+
+  initDemo();
+})();
+</script>
+</body>
+</html>
