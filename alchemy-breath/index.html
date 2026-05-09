@@ -78,87 +78,69 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.1rem;
     line-height: 1.8;
-    min-height: 300px;
+    min-height: 200px;
     background: #0a0a14;
-    display: flex;
-    flex-direction: column;
   }
 
-  /* ── Main conversation area ── */
-  .conversation {
-    flex: 1;
-  }
-
+  /* ── Conversation lines ── */
   .prompt-line {
     color: #FFCC3D;
-    margin-bottom: 4px;
+    margin-bottom: 0;
   }
-
   .response-line {
     color: #ccc;
-    margin: 6px 0 6px 0;
-    opacity: 0;
+    margin: 0;
     white-space: pre-wrap;
   }
-  .response-line.visible {
-    animation: fadeIn 0.4s ease forwards;
-  }
-  @keyframes fadeIn {
-    to { opacity: 1; }
-  }
-
   .completed-text {
     color: #64ffda;
     font-size: 0.85rem;
-    margin-top: 4px;
-    opacity: 0;
-  }
-  .completed-text.visible {
-    animation: fadeIn 0.3s ease forwards;
+    margin: 2px 0 0 0;
   }
 
-  /* ── Bottom status bar ── */
-  .bottom-bar {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    display: flex;
+  /* ── Status line: 바로 아래 왼쪽 (인라인) ── */
+  .status-line {
+    display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    min-height: 36px;
-  }
-
-  /* Brackets + diamond: tightly packed, no gap */
-  .breath-indicator {
+    gap: 4px;
+    margin: 1px 0 0 0;
     font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0;
     letter-spacing: 0;
   }
-  .breath-indicator .bracket {
+  .status-line .bracket {
     color: rgba(255,204,61,0.5);
   }
-  .breath-indicator .diamond {
+  .status-line .diamond {
     color: rgba(255,204,61,0.3);
     text-shadow: none;
   }
-
-  .bottom-status {
-    font-size: 0.7rem;
-    color: #666;
-    margin-left: 4px;
+  .status-line .status-text {
+    font-size: 0.68rem;
+    color: #555;
+    margin-left: 2px;
   }
 
+  /* ── Cursor ── */
   .cursor-blink {
+    display: inline-block;
     width: 6px; height: 14px;
     background: #FFCC3D;
     animation: blink 1s step-end infinite;
     margin-left: 2px;
+    vertical-align: middle;
   }
   @keyframes blink {
     50% { opacity: 0; }
+  }
+
+  /* ── Layering: think vs done ── */
+  .phase-think .response-line,
+  .phase-think .completed-text,
+  .phase-think .status-done {
+    display: none;
+  }
+  .phase-done .status-think {
+    display: none;
   }
 
   /* ── Explanation section ── */
@@ -171,12 +153,6 @@
     color: #FFCC3D;
     font-size: 1.2rem;
     margin: 32px 0 12px;
-    font-weight: 500;
-  }
-  .explain h3 {
-    color: #aaa;
-    font-size: 0.95rem;
-    margin: 24px 0 8px;
     font-weight: 500;
   }
   .explain p {
@@ -209,14 +185,6 @@
     border-top: 1px solid #111122;
     width: 100%;
   }
-
-  .phase-badge {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 0.7rem;
-    color: #444;
-    letter-spacing: 2px;
-  }
 </style>
 </head>
 <body>
@@ -236,74 +204,69 @@
   </div>
   <div class="terminal-body" id="terminal">
 
-    <!-- Main conversation area -->
-    <div class="conversation" id="conversation">
-      <div class="prompt-line" id="promptLine">◆ 안녕, 새로운 아이디어 있어?</div>
-      <div class="response-line" id="responseLine"></div>
-      <div class="completed-text" id="completedText"></div>
-    </div>
+    <!-- Previous conversations (built up over cycles) -->
+    <div id="history"></div>
 
-    <!-- Bottom status bar: {◆} breathing + status text -->
-    <div class="bottom-bar" id="bottomBar">
-      <div class="breath-indicator">
-        <span class="bracket" id="bracketOpen">{</span>
-        <span class="diamond" id="diamond">◆</span>
-        <span class="bracket" id="bracketClose">}</span>
-      </div>
-      <span class="bottom-status" id="statusText">연결 중...</span>
+    <!-- Current cycle -->
+    <div class="prompt-line" id="promptLine">◆ 안녕, 새로운 아이디어 있어?</div>
+
+    <!-- Thinking status (마지막 글 바로 아래 왼쪽) -->
+    <div class="status-line status-think" id="statusThink">
+      <span class="bracket">{</span>
+      <span class="diamond" id="diamond">◆</span>
+      <span class="bracket">}</span>
+      <span class="status-text" id="thinkText">생각하고 있어요...</span>
       <span class="cursor-blink" id="cursorBlink"></span>
     </div>
+
+    <!-- Response appears here during show phase -->
+    <div class="response-line" id="responseLine"></div>
+
+    <!-- Completed message -->
+    <div class="completed-text" id="completedText"></div>
+
+    <!-- Done status line (replaces think status) -->
+    <div class="status-line status-done" id="statusDone" style="display:none;">
+      <span style="color:#64ffda;">✓</span>
+      <span class="status-text" style="color:#64ffda;">완료되었습니다.</span>
+    </div>
+
+    <!-- Spacer for next cycle -->
+    <div style="height:4px;"></div>
 
   </div>
 </div>
 
 <script>
 (function() {
-  // ── Breath config ──
+  // ── Breath config: 느리게 + 더 많은 프레임 ──
   const BASE_R = 255, BASE_G = 204, BASE_B = 61;
   const BRACKET_BRIGHT = 0.50;
-  const BRIGHT_MIN = 0.30, BRIGHT_MAX = 1.00;
-  const CYCLE_MS = 600;
-  const FPS = 25;
-  const STEP_MS = 1000 / FPS;
+  const BRIGHT_MIN = 0.15, BRIGHT_MAX = 1.00;
+  const CYCLE_MS = 1500;        // 600→1500: 2.5x 느리게
+  const FPS = 30;               // 25→30: 더 부드럽게
+  const STEP_MS = 1000 / FPS;   // ~33ms
+  const CYCLE_STEPS = (FPS * CYCLE_MS) / 1000; // 45 frames
 
   // DOM refs
-  const bracketOpen = document.getElementById('bracketOpen');
   const diamond = document.getElementById('diamond');
-  const bracketClose = document.getElementById('bracketClose');
-  const statusText = document.getElementById('statusText');
+  const thinkText = document.getElementById('thinkText');
   const cursorBlink = document.getElementById('cursorBlink');
   const promptLine = document.getElementById('promptLine');
   const responseLine = document.getElementById('responseLine');
   const completedText = document.getElementById('completedText');
+  const statusThink = document.getElementById('statusThink');
+  const statusDone = document.getElementById('statusDone');
+  const history = document.getElementById('history');
 
-  // ── Helper: set bracket dim (50%) ──
-  function setBracketDim() {
-    const r = Math.round(BASE_R * BRACKET_BRIGHT);
-    const g = Math.round(BASE_G * BRACKET_BRIGHT);
-    const b = Math.round(BASE_B * BRACKET_BRIGHT);
-    bracketOpen.style.color = `rgb(${r},${g},${b})`;
-    bracketClose.style.color = `rgb(${r},${g},${b})`;
-  }
-
-  // ── Helper: full brightness all ──
-  function setFullBright() {
-    const c = `rgb(${BASE_R},${BASE_G},${BASE_B})`;
-    const s = `0 0 12px rgba(255,204,61,0.4)`;
-    bracketOpen.style.color = c; bracketOpen.style.textShadow = s;
-    diamond.style.color = c; diamond.style.textShadow = s;
-    bracketClose.style.color = c; bracketClose.style.textShadow = s;
-  }
-
-  // ── Breathing loop ──
+  // ── Breathing ──
   let step = 0;
   let breathing = false;
   let breathTimer = null;
 
   function startBreath() {
     breathing = true;
-    setBracketDim();
-    diamond.style.color = `rgb(${Math.round(BASE_R * 0.3)},${Math.round(BASE_G * 0.3)},${Math.round(BASE_B * 0.3)})`;
+    diamond.style.color = `rgb(${Math.round(BASE_R * 0.15)},${Math.round(BASE_G * 0.15)},${Math.round(BASE_B * 0.15)})`;
     diamond.style.textShadow = 'none';
     tickBreath();
   }
@@ -311,101 +274,116 @@
   function tickBreath() {
     if (!breathing) return;
     step++;
-    const t = (step % 15) / 15 * 2 * Math.PI;
+    const t = (step % CYCLE_STEPS) / CYCLE_STEPS * 2 * Math.PI;
     const s = Math.sin(t);
-    const bright = 0.30 + 0.70 * (s + 1) / 2;
+    const bright = BRIGHT_MIN + (BRIGHT_MAX - BRIGHT_MIN) * (s + 1) / 2;
     const r = Math.round(BASE_R * bright);
     const g = Math.round(BASE_G * bright);
     const b = Math.round(BASE_B * bright);
     diamond.style.color = `rgb(${r},${g},${b})`;
-    diamond.style.textShadow = `0 0 12px rgba(255,204,61,${0.35 * bright})`;
+    diamond.style.textShadow = `0 0 14px rgba(255,204,61,${0.3 * bright})`;
     breathTimer = setTimeout(tickBreath, STEP_MS);
   }
 
   function stopBreath() {
     breathing = false;
-    if (breathTimer) {
-      clearTimeout(breathTimer);
-      breathTimer = null;
-    }
-    setFullBright();
+    if (breathTimer) { clearTimeout(breathTimer); breathTimer = null; }
   }
 
-  // ── Demo phases ──
+  // ── Show full brightness briefly before transitioning ──
+  function flashFull() {
+    diamond.style.color = `rgb(${BASE_R},${BASE_G},${BASE_B})`;
+    diamond.style.textShadow = `0 0 14px rgba(255,204,61,0.4)`;
+  }
+
+  // ── Demo data ──
   const demos = [
-    {
-      responses: [
-        "안녕하세요! 좋은 질문이네요.\nAI 에이전트가 응답을 생성하는 과정을\n생각해보면 흥미로운 점이 많아요."
-      ]
-    },
-    {
-      responses: [
-        "네, 가능합니다.\nC99 단일 쓰레드 구조에서 select() 기반\n비동기 I/O로 구현했어요."
-      ]
-    },
-    {
-      responses: [
-        "물론이죠. 여기 제안할게요:\n\n1. OpenSSL 정적 링크\n2. linenoise REPL 통합\n3. SSE 스트리밍"
-      ]
-    }
+    { prompt: '안녕, 새로운 아이디어 있어?', responses: ['안녕하세요! 좋은 질문이네요.\nAI 에이전트가 응답을 생성하는 과정을\n생각해보면 흥미로운 점이 많아요.'] },
+    { prompt: '근데 C99로 가능해?', responses: ['네, 가능합니다.\nC99 단일 쓰레드 구조에서 select() 기반\n비동기 I/O로 구현했어요.'] },
+    { prompt: '구체적으로 뭘 만들었어?', responses: ['물론이죠. 여기 제안할게요:\n\n1. OpenSSL 정적 링크\n2. linenoise REPL 통합\n3. SSE 스트리밍'] }
   ];
 
   let demoIdx = 0;
-  let respIdx = 0;
 
-  function runDemo() {
+  // ── Cycle phases ──
+  function runCycle() {
     const demo = demos[demoIdx % demos.length];
+    const prevPrompt = demo.prompt;
 
-    // Reset visuals
-    responseLine.classList.remove('visible');
+    // Reset current cycle elements
     responseLine.textContent = '';
-    completedText.classList.remove('visible');
+    responseLine.style.display = 'none';
     completedText.textContent = '';
+    completedText.style.display = 'none';
+    statusDone.style.display = 'none';
+    statusThink.style.display = 'inline-flex';
     cursorBlink.style.display = 'inline-block';
-    statusText.textContent = '생각하고 있어요...';
-    promptLine.textContent = `◆ ${demo.prompt || '안녕, 새로운 아이디어 있어?'}`;
 
-    // Start breathing
+    // Show prompt
+    promptLine.textContent = `◆ ${prevPrompt}`;
+
+    // Hide any previous completion indicator on prompt
+    thinkText.textContent = '생각하고 있어요...';
+
+    // Phase 1: Thinking (breathing)
     startBreath();
 
-    // Phase 2: after ~2s, show response
+    // Phase 2: After ~3s (longer to appreciate slow breathing), show response
     setTimeout(() => {
       stopBreath();
-      statusText.textContent = '';
-      cursorBlink.style.display = 'none';
+      flashFull();
 
-      // Show response lines one by one
-      let rIdx = 0;
-      function showNextResp() {
-        if (rIdx >= demo.responses.length) {
-          // All responses shown → show 완료
-          completedText.textContent = '✓ 완료되었습니다.';
-          completedText.classList.add('visible');
-          statusText.textContent = '✓ 완료';
-
-          // After pause, next demo
-          setTimeout(() => {
-            demoIdx++;
-            runDemo();
-          }, 3000);
-          return;
-        }
-        responseLine.textContent += (rIdx > 0 ? '\n' : '') + demo.responses[rIdx];
-        responseLine.classList.add('visible');
-        rIdx++;
-        setTimeout(showNextResp, 600);
-      }
-      showNextResp();
-    }, 2200);
+      // Brief pause at full brightness
+      setTimeout(() => {
+        hideThinking();
+        showResponse(demo);
+      }, 300);
+    }, 3200);
   }
 
-  // ── Assign prompts dynamically ──
-  demos[0].prompt = '안녕, 새로운 아이디어 있어?';
-  demos[1].prompt = '근데 C99로 가능해?';
-  demos[2].prompt = '구체적으로 뭘 만들었어?';
+  function hideThinking() {
+    statusThink.style.display = 'none';
+    cursorBlink.style.display = 'none';
+  }
+
+  function showResponse(demo) {
+    // Show response text
+    responseLine.textContent = demo.responses[0];
+    responseLine.style.display = 'block';
+
+    // After response shown, show completion
+    setTimeout(() => {
+      showComplete();
+    }, 1500);
+  }
+
+  function showComplete() {
+    completedText.textContent = '✓ 완료되었습니다.';
+    completedText.style.display = 'block';
+    statusDone.style.display = 'inline-flex';
+
+    // After pause, archive current cycle and start next
+    setTimeout(() => {
+      archiveCycle();
+      demoIdx++;
+      runCycle();
+    }, 2500);
+  }
+
+  function archiveCycle() {
+    // Move current content to history
+    const archive = document.createElement('div');
+    archive.style.marginBottom = '16px';
+    archive.innerHTML = `
+      <div style="color:#FFCC3D;">${promptLine.textContent}</div>
+      <div style="color:#ccc;white-space:pre-wrap;">${responseLine.textContent || ''}</div>
+      <div style="color:#64ffda;font-size:0.85rem;">✓ 완료되었습니다.</div>
+    `;
+    history.appendChild(archive);
+  }
 
   // ── Start ──
-  runDemo();
+  runCycle();
 })();
 </script>
 
@@ -414,19 +392,20 @@
   <h2>🎯 개념</h2>
   <p>
     <code>{◆}</code> 는 ALCHEMY의 핵심 로고입니다. LLM이 응답을 준비하는 동안,
-    이 심볼이 <strong>부드럽게 호흡</strong>합니다. 대답이 도착하면 풀 밝기로 고정됩니다.
+    이 심볼이 <strong>매우 천천히 부드럽게 호흡</strong>합니다.
+    대답이 도착하면 잠시 풀 밝기로 빛나고 사라집니다.
   </p>
   <p>
-    <code>{◆}</code> 는 항상 터미널 <strong>최하단</strong>에 위치합니다.
-    "생각하고 있어요..." 메시지와 함께, 응답이 생성되는 동안 조용히 존재합니다.
+    <code>{◆}</code> 는 항상 <strong>마지막 글 바로 아래 왼쪽</strong>에 위치합니다.
+    대화 흐름을 방해하지 않으면서, 현재 상태를 조용히 알려줍니다.
   </p>
 
   <div class="divider"></div>
 
   <h2>📐 원리</h2>
   <p>
-    밝기는 사인파(sine wave)를 따라 30% ~ 100% 사이를 부드럽게 오르내립니다.
-    1왕복 600ms (25fps)로, 자연스러운 호흡 리듬을 모방합니다.
+    밝기는 사인파(sine wave)를 따라 15% ~ 100% 사이를 부드럽게 오르내립니다.
+    1왕복 <strong>1500ms (30fps, 45프레임)</strong>로, 아주 천천히 자연스럽게 호흡합니다.
   </p>
 
   <p>
@@ -438,14 +417,15 @@
 
   <h2>🧠 플로우</h2>
   <pre style="background:#0d0d16; border:1px solid #1a1a3e; border-radius:8px; padding:16px; color:#b0b0b0; line-height:1.6; font-size:0.8rem; font-family:'JetBrains Mono',monospace; overflow-x:auto;">
-<span style="color:#FFCC3D;">◆</span> 안녕, 새로운 아이디어 있어?    ← 사용자 입력
+<span style="color:#FFCC3D;">◆</span> 안녕, 새로운 아이디어 있어?
+<span style="color:rgba(255,204,61,0.5);">{</span><span style="color:rgba(255,204,61,0.3);">◆</span><span style="color:rgba(255,204,61,0.5);">}</span> 생각하고 있어요...   ← 마지막 글 바로 아래 왼쪽!
 
-                                   <span style="color:rgba(255,204,61,0.5);">{</span><span style="color:rgba(255,204,61,0.3);">◆</span><span style="color:rgba(255,204,61,0.5);">}</span> 생각하고 있어요...  ← 최하단, 작게
-
-안녕하세요! 좋은 질문이네요.          ← 응답 등장
+안녕하세요! 좋은 질문이네요.          ← 응답
 AI 에이전트가...
+✓ 완료되었습니다.                    ← 완료
 
-                                   ✓ 완료되었습니다.     ← 완료 메시지
+<span style="color:#FFCC3D;">◆</span> 근데 C99로 가능해?
+<span style="color:rgba(255,204,61,0.5);">{</span><span style="color:rgba(255,204,61,0.3);">◆</span><span style="color:rgba(255,204,61,0.5);">}</span> 생각하고 있어요...   ← 새 질문 아래에 다시 등장
   </pre>
 
   <div class="divider"></div>
