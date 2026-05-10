@@ -145,6 +145,26 @@
     </div>
 
     <div class="project">
+      <h3>🔑 pkcs11-demo <span class="badge badge-new">NEW</span></h3>
+      <p class="meta">PKCS#11 키 관리 개념 증명 + Shannon 엔트로피 분석기 | C OpenSSL | 2026.05</p>
+      <p>OpenSSL EVP API로 PKCS#11의 핵심 개념(키 생성 → 서명 → 검증)을 재현하고, 바이너리 파일의 엔트로피를 측정하여 암호화/패킹 여부를 추정하는 도구입니다.</p>
+      <ul>
+        <li>RSA 2048 키 생성 / SHA-256 서명 / 검증 / 변조 탐지 데모</li>
+        <li>Shannon 엔트로피 기반 파일 분석 (임계치 6.5 → 암호화 의심)</li>
+        <li>PEScan 프로젝트에서 발전시킨 엔트로피 분석 코어</li>
+        <li>블록 단위 세분화 분석 (파일 크기별 자동 블록 수 결정)</li>
+        <li>CMake 빌드 시스템, OpenSSL 의존</li>
+      </ul>
+      <div class="tech">
+        <span>C11</span><span>OpenSSL</span><span>PKCS#11</span><span>Entropy Analysis</span>
+        <span>CMake</span>
+      </div>
+      <p style="margin-top:8px;">
+        <a href="https://github.com/Caixa-git/pkcs11-demo" style="color:#00d4ff; font-size:0.85rem;">github.com/Caixa-git/pkcs11-demo →</a>
+      </p>
+    </div>
+
+    <div class="project">
       <h3>🔬 PEScan</h3>
       <p class="meta">PE 파일 악성코드 스캐너 DLL | C++17 Win32 | 2026.05</p>
       <p>PE(Portable Executable) 파일 구조를 분석하고 YARA 시그니처 기반으로 악성코드를 탐지하는 Windows DLL 라이브러리입니다.</p>
@@ -273,7 +293,9 @@
     <p style="margin-bottom: 12px;">
       <a href="https://github.com/Caixa-git" style="color:#7b2ff7; text-decoration:none;">GitHub</a>
       &nbsp;·&nbsp;
-      <a href="https://github.com/Caixa-git/checkmal" style="color:#7b2ff7; text-decoration:none;">checkmal 레포</a>
+      <a href="https://github.com/Caixa-git/checkmal" style="color:#7b2ff7; text-decoration:none;">checkmal</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/Caixa-git/pkcs11-demo" style="color:#7b2ff7; text-decoration:none;">pkcs11-demo</a>
       &nbsp;·&nbsp;
       <a href="https://caixa-git.github.io/portfolio/" style="color:#7b2ff7; text-decoration:none;">portfolio</a>
     </p>
