@@ -145,6 +145,23 @@
     </div>
 
     <div class="project">
+      <h3>🔬 PEScan</h3>
+      <p class="meta">PE 파일 악성코드 스캐너 DLL | C++17 Win32 | 2026.05</p>
+      <p>PE(Portable Executable) 파일 구조를 분석하고 YARA 시그니처 기반으로 악성코드를 탐지하는 Windows DLL 라이브러리입니다.</p>
+      <ul>
+        <li>DOS 헤더 → NT 헤더 → 섹션 테이블 → 임포트/익스포트 테이블 순차 파싱 (CreateFileMapping + MapViewOfFile)</li>
+        <li>섹션별 Shannon 엔트로피 계산 → 패킹/암호화 탐지 (임계치 6.5)</li>
+        <li>YARA 포맷 시그니처 파일 로드 및 hex/문자열 패턴 매칭</li>
+        <li>프로세스 인젝션, 의심 DLL 로딩, 안티디버깅 등 기본 탐지 룰 탑재</li>
+        <li>CLI 데모 도구 포함 (단일 파일 및 디렉토리 스캔)</li>
+      </ul>
+      <div class="tech">
+        <span>C++17</span><span>Win32 API</span><span>PE Format</span><span>YARA</span>
+        <span>Entropy Analysis</span><span>CMake</span>
+      </div>
+    </div>
+
+    <div class="project">
       <h3>🛡 HSM 로그인 자동화 모듈 (쿠콘, 2019~2025)</h3>
       <p class="meta">국내외 16개 금융기관 대상 | 단독 개발</p>
       <p>HSM 환경에서 개인키 반출 없이 서명 가능한 PKCS#11 Wrapper 및 서명 재조립 모듈</p>
